@@ -1,0 +1,5 @@
+{
+    "assets_path": "/path/to/unpacked-assets",
+    "fu_path": "/path/to/FrackinUniverse/",
+    "output_path": "./res/"
+}

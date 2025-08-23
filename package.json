@@ -1,5 +1,5 @@
 {
-  "name": "label-printer",
+  "name": "fu-advanced-lab-directory",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -12,6 +12,7 @@
   "dependencies": {
     "@tailwindcss/vite": "^4.1.8",
     "@types/node": "^22.15.29",
+    "@xyflow/react": "^12.8.4",
     "clsx": "^2.1.1",
     "normalize.css": "^8.0.1",
     "react": "^19.1.0",
@@ -25,8 +26,13 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react-swc": "^3.9.0",
+    "dayjs": "^1.11.13",
+    "fast-json-patch": "^3.1.1",
     "globals": "^16.0.0",
+    "json5": "^2.2.3",
+    "strip-json-comments": "^5.0.3",
     "typescript": "~5.8.3",
-    "vite": "^6.3.5"
+    "vite": "^6.3.5",
+    "winston": "^3.17.0"
   }
 }
