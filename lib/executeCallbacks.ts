@@ -1,4 +1,3 @@
-import logger from './logger';
 import path from 'node:path';
 
 const getExtension = (fpath: string) =>
@@ -6,10 +5,10 @@ const getExtension = (fpath: string) =>
 
 const executeCallbacks = (
     path: string,
-    callbackObj: { [k: string]: (path: string) => void },
+    callbackObj: { [k: string]: () => void },
 ) => {
     const extension = getExtension(path);
-    callbackObj[extension]?.(path);
+    callbackObj[extension]?.();
 };
 
 export default executeCallbacks;

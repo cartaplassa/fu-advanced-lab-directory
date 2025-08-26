@@ -19,11 +19,6 @@ const logger = winston.createLogger({
                 colorize({ all: true }),
             ),
         }),
-        // new winston.transports.File({
-        //     format: combine(customTimestamp(), align(), customFormat),
-        //     filename: `./logs/${dayjs().format('YYYY-MMDD-HHmmss')}.log`,
-        //     handleExceptions: true,
-        // }),
         new winston.transports.Stream({
             level: 'debug',
             format: combine(customTimestamp(), align(), customFormat),

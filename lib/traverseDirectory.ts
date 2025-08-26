@@ -18,3 +18,12 @@ export default function traverseDirectory(
         }
     }
 }
+
+/*
+.craftingStations.values().({
+	objectName, 
+	interactAction, 
+	inventoryIcon, 
+	interactData.filter
+})
+*/
