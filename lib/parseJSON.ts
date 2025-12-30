@@ -20,15 +20,14 @@ const parseJSON = (path: fs.PathOrFileDescriptor) => {
             );
             try {
                 return JSON5.parse(fixNewlines(file));
-            } catch (e) {
-                logger.error(
-                    `SyntaxError while parsing JSON5 at ${path},\nContent: ${e}`,
-                );
-                logger.debug(file);
+            } catch (_e) {
+                logger.warn(`SyntaxError while parsing JSON5 at ${path}`);
+                // logger.debug(file);
             }
+        } else {
+            logger.error(`Unknown JSON5 parsing error at ${path}`);
+            // logger.debug(file);
         }
-        logger.error(`Unknown JSON5 parsing error at ${path},\nContent: ${e}`);
-        logger.debug(file);
     }
 };
 

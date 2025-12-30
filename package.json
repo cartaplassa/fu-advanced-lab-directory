@@ -8,7 +8,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "assemble": "npx tsx assemble-resources.ts"
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.8",
@@ -25,6 +26,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.0.0-beta.3",
+    "@types/mime-types": "^3.0.1",
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react-swc": "^3.9.0",
@@ -32,6 +34,8 @@
     "fast-json-patch": "^3.1.1",
     "globals": "^16.0.0",
     "json5": "^2.2.3",
+    "mime-types": "^3.0.1",
+    "sharp": "^0.34.3",
     "strip-json-comments": "^5.0.3",
     "typescript": "~5.8.3",
     "vite": "^6.3.5",
