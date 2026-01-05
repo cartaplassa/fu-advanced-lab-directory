@@ -1,10 +1,13 @@
 import fs from 'node:fs';
 import path from 'node:path';
-
+import { deepGet, ensurePathArray } from '~/lib/assemble/misc/deepObjectAccess';
 import logger from '~/lib/logger';
-import { deepGet, ensurePathArray } from '../misc/deepObjectAccess';
 
-//NOTE - iname.frames || default.frames
+// FIXME - order of lookup is wrong.
+// `./iconName.frames`, `./default.frames`, `../default.frames` etc.
+// 1) Go through fs, if found - populate object
+// 2) Look up inside the object to fing the correct .frames
+
 export const getFramesFromPath = (
     relfpath: string,
     fname: string,

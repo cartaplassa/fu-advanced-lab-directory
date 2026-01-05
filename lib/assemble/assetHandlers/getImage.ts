@@ -8,69 +8,57 @@ import type { FileContext } from '../rawResourceCollection/context';
 import { getCropCoordinates } from './getCropCoordinates';
 import { getFramesFromPath } from './getFrame';
 
-export function resolveCaseInsensitive(
-    rootPath: string,
-    filePath: string,
-): string | null {
-    console.log('resolveCaseInsensitive', rootPath, filePath);
-    const absPath = path.isAbsolute(filePath)
-        ? filePath
-        : path.join(rootPath, filePath);
-    if (fs.existsSync(absPath)) return absPath;
-    const dir = path.dirname(absPath);
-    if (dir === absPath) return null;
-    const resolvedDir = resolveCaseInsensitive(rootPath, dir);
-    if (resolvedDir === null) return null;
-    const baseName = path.basename(absPath).toLowerCase();
-
-    try {
-        const match = fs
-            .readdirSync(resolvedDir)
-            .find((file) => file.toLowerCase() === baseName);
-
-        return match ? path.join(resolvedDir, match) : null;
-    } catch {
-        return null;
-    }
-}
-
-export const getAbsImagePath = (
-    rootPath: string,
-    fpath: string,
-    iname: string,
-) =>
-    iname.startsWith('/')
-        ? path.join(rootPath, iname)
-        : path.join(path.dirname(fpath), iname);
-
-// const removeExtension = (fbase: string) => {
-//     const temp = fbase.split('.');
-//     if (temp.length === 1) return fbase;
-//     return temp.slice(0, -1).join('.');
-// };
-
 const getImage = (
     ctx: FileContext,
     fpath: string,
-    unfilteredImageName: string,
+    imgRef: string,
     newName?: string,
 ) => {
-    logger.info(`Getting image ${unfilteredImageName} at ${fpath}`);
+    logger.info(`Getting image ${imgRef} at ${fpath}`);
     const filePath = new SimplePath(fpath);
-    const [irelloc, key] = unfilteredImageName.split(':');
+    // File location relative to root
+    const frelloc = filePath.relloc(ctx.currentRoot);
+    const { irelloc, key, processingDirectives } = splitIrelloc(imgRef);
+    if (processingDirectives.length > 0) {
+        logger.warn(
+            `Found processing directives: ${processingDirectives.join(', ')}. Ignoring asset.`,
+        );
+        return;
+    }
 
-    const resolvedImageAbsPath = resolveCaseInsensitive(
-        path.dirname(fpath),
-        getAbsImagePath(ctx.currentRoot, fpath, irelloc),
+    let resolvedImageAbsPath = getImagePath(
+        getAbsImagePath(ctx.currentRoot, frelloc, irelloc),
     );
+
+    // Look in previous roots
     if (!resolvedImageAbsPath) {
-        throw new Error(`Image path not found: ${irelloc}`);
+        logger.debug(`Image path not found: ${irelloc}, ${frelloc}`);
+        const previousRoots = ctx.inputPaths.slice(
+            0,
+            ctx.inputPaths.indexOf(ctx.currentRoot) + 1,
+        );
+        previousRoots.reverse();
+        for (const rootPath of previousRoots) {
+            resolvedImageAbsPath = getImagePath(
+                getAbsImagePath(rootPath, frelloc, irelloc),
+            );
+            if (resolvedImageAbsPath) {
+                logger.debug(
+                    `Found alternative image: ${resolvedImageAbsPath}`,
+                );
+                break;
+            }
+        }
+        if (!resolvedImageAbsPath) {
+            logger.error(`Image path not found anywhere`);
+            return;
+        }
     }
 
     const imagePath = new SimplePath(
         path.relative(ctx.currentRoot, resolvedImageAbsPath),
     );
-    logger.debug(`Image path: ${imagePath.path}`);
+    logger.debug(`Image relloc: ${imagePath.path}`);
 
     const outputPath = path.join(
         ctx.unfilteredImagesPath,
@@ -79,9 +67,6 @@ const getImage = (
 
     if (key) {
         let framesPath = new SimplePath(imagePath.path);
-        logger.debug(
-            `Frames path: ${framesPath.path}, root: ${ctx.currentRoot}`,
-        );
 
         // biome-ignore lint/suspicious/noExplicitAny: <Because of reasons>
         let framesObj: any;
@@ -98,8 +83,10 @@ const getImage = (
                 ) || '',
             );
 
-            if (framesPath.path === '' || framesPath.path === undefined)
-                throw new Error('getFramesFromPath(): .frames not found');
+            if (framesPath.path === '') {
+                logger.error('.frames not found');
+                return;
+            }
             logger.debug(`Current root: ${ctx.currentRoot}`);
             logger.debug(
                 `Found .frames, path: ${path.relative(ctx.currentRoot, framesPath.path)}`,
@@ -148,3 +135,87 @@ const getImage = (
 };
 
 export default getImage;
+
+// Process starboung asset reference
+// irelloc - starts with either `/` - location relative to root of assets/mod,
+// or filename - location relative to .item, .object etc. file itself
+// key - argument passed to .frames to get crop coordinates
+// processingDirectives - `flipx`, `scale=0.5` etc. - ignoring for now
+export function splitIrelloc(ref: string) {
+    const [splitInst, ...processingDirectives] = ref.split('?');
+    const [irelloc, key] = splitInst.split(':');
+    return { irelloc, key, processingDirectives };
+}
+
+// Resolve inventoryIcon prop of item/object
+export const getAbsImagePath = (
+    rootPath: string,
+    fpath: string,
+    iname: string,
+) =>
+    iname.startsWith('/')
+        ? path.join(rootPath, iname)
+        : path.join(rootPath, path.dirname(fpath), iname);
+
+// Wrapper for resolveCaseInsensitive with logging,
+// where we optimistically pick first located match
+function getImagePath(absFilePath: string): string | null {
+    const matches = resolveCaseInsensitive(absFilePath);
+    if (matches.length === 0) {
+        logger.debug(`Image path not resolved: ${absFilePath}`);
+        return null;
+    } else if (matches.length > 1) {
+        // Doesn't happen with Starbound+FU, here for a sanity check
+        logger.debug('Several image path matches resolved:');
+        for (const match of matches) logger.debug(match);
+        logger.debug('Picking the first');
+    }
+    return matches[0];
+}
+
+// Get real matches on filesystem for a given case-insensitive path
+export function resolveCaseInsensitive(absFilePath: string): string[] {
+    if (fs.existsSync(absFilePath)) {
+        logger.debug(`File exists: ${absFilePath}`);
+        return [absFilePath];
+    }
+    const parsedPath = path.parse(absFilePath);
+    const splitPath = path
+        .relative(parsedPath.root, absFilePath)
+        .split(path.sep);
+    const output: string[] = [];
+    populatePaths(
+        absFilePath.toLowerCase(),
+        parsedPath.root,
+        splitPath,
+        output,
+    );
+    return output;
+}
+
+// Helper function that walks a graph for resolveCaseInsensitive()
+function populatePaths(
+    absFilePath: string,
+    rootPath: string,
+    segments: string[],
+    outputs: string[],
+) {
+    const [currentSegment, ...remainingSegments] = segments;
+    const currentSegmentLower = currentSegment.toLowerCase();
+    const files = fs
+        .readdirSync(rootPath)
+        .filter((file) => file.toLowerCase() === currentSegmentLower);
+    for (const file of files) {
+        const localFilePath = path.join(rootPath, file);
+        if (localFilePath.toLowerCase() === absFilePath) {
+            outputs.push(localFilePath);
+        } else {
+            populatePaths(
+                absFilePath,
+                localFilePath,
+                remainingSegments,
+                outputs,
+            );
+        }
+    }
+}

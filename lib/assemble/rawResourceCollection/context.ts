@@ -1,11 +1,12 @@
 import path from 'node:path';
+import { applyPatchRecursively } from '~/lib/assemble/assembleObjectPatch';
+import SimplePath from '~/lib/assemble/misc/simplePath';
+import type { ItemFile } from '~/lib/assemble/schemas/itemFileSchema';
+import type { ObjectFile } from '~/lib/assemble/schemas/objectFileSchema';
+import type { JSONPatch } from '~/lib/assemble/schemas/patchFileSchema';
+import type { RecipeFile } from '~/lib/assemble/schemas/recipeFileSchema';
 import logger from '~/lib/logger';
-import { applyPatchRecursively } from '../assembleObjectPatch';
-import SimplePath from '../misc/simplePath';
-import type { ItemFile } from '../unfilteredFileSchemas/itemFileSchema';
-import type { ObjectFile } from '../unfilteredFileSchemas/objectFileSchema';
-import type { JSONPatch } from '../unfilteredFileSchemas/patchFileSchema';
-import type { RecipeFile } from '../unfilteredFileSchemas/recipeFileSchema';
+import type { CentrifugeRecipes } from '../schemas/centrifugeRecipesSchema';
 import { FrameCollection } from './frameCollection';
 
 export class FileContext {
@@ -19,6 +20,9 @@ export class FileContext {
     objects: { [k: string]: ObjectFile };
     recipes: { [k: string]: RecipeFile };
     frames: FrameCollection;
+    centrifugeRecipes: CentrifugeRecipes;
+    starboundVersion: string;
+    FUVersion: string;
 
     constructor(inputPaths: string[], outputPath: string) {
         this.inputPaths = [...new Set(inputPaths)];
@@ -30,6 +34,7 @@ export class FileContext {
         this.objects = {};
         this.recipes = {};
         this.frames = new FrameCollection();
+        this.starboundVersion = '1.4.4';
     }
 
     getAll() {
@@ -38,6 +43,9 @@ export class FileContext {
             objects: this.objects,
             recipes: this.recipes,
             frames: this.frames,
+            centrifugeRecipes: this.centrifugeRecipes,
+            starboundVersion: this.starboundVersion,
+            FUVersion: this.FUVersion,
         };
     }
 

@@ -3,7 +3,7 @@ import dayjs from 'dayjs';
 import winston from 'winston';
 
 const { align, colorize, combine, timestamp, printf } = winston.format;
-const customTimestamp = () => timestamp({ format: 'YYYY-MMDD-HHmmss' });
+const customTimestamp = () => timestamp({ format: 'YYYY-MMDD-HHmmss-SSS' });
 const customFormat = printf(
     ({ level, message, timestamp }) =>
         `${timestamp} ${level.toUpperCase()}: ${message}`,

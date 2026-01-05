@@ -1,0 +1,7 @@
+{
+    "input_paths": [
+        "/home/eos/Code/typescript/starbound-ald/starbound-assets/",
+        "/home/eos/Code/typescript/starbound-ald/FrackinUniverse/"
+    ],
+    "output_path": "./res/"
+}

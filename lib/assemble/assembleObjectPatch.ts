@@ -1,8 +1,9 @@
 /** biome-ignore-all lint/suspicious/noExplicitAny: parsing stuff */
-import logger from '~/lib/logger';
+
 import path from 'node:path';
-import parseJSON from '~/lib/parseJSON';
 import jsonpatch from 'fast-json-patch/index';
+import logger from '~/lib/logger';
+import parseJSON from '~/lib/parseJSON';
 
 export const getPatchTargetKey = (path: string) =>
     path.split('.').slice(0, -1).join('.');
@@ -23,9 +24,8 @@ export const applyPatchRecursively = (
     } catch (e) {
         const validatorResponse = jsonpatch.validate(patch, validOperations);
         if (fpath) {
-            logger.error(
-                `Error while applying patch at ${fpath}\nContent: ${e}`,
-            );
+            logger.error(`Error while applying patch at ${fpath}`);
+            logger.debug(`Error content:\n${e}`);
         }
         logger.debug(`Validator's response:\n${validatorResponse}`);
     }
