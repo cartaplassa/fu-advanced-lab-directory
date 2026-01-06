@@ -43,3 +43,14 @@ export default class SimplePath {
         return `{\n    path: ${this.path}\n    base: ${this.base}\n    name: ${this.name}\n    ext: ${this.ext}\n    dir: ${this.dir}\n}`;
     }
 }
+
+export function isPathChild(from: string, to: string) {
+    const relative = path.relative(from, to);
+    return relative && !relative.startsWith('..') && !path.isAbsolute(relative);
+}
+
+export function isPathDirectChild(from: string, to: string) {
+    const relative = path.relative(from, to);
+    const descendant = isPathChild(from, to);
+    return descendant && !relative.includes(path.sep);
+}

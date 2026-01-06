@@ -55,12 +55,12 @@ export class FileContext {
             '';
     }
 
-    getFrames(relPath: string, fname: string) {
-        logger.debug(`Getting frames for ${fname} at ${relPath}`);
-        return this.frames.get(relPath, fname);
+    getFrames(relPath: string) {
+        logger.debug(`Getting frames for ${relPath}`);
+        return this.frames.get(relPath);
     }
-    getFramesPath(relPath: string, fname: string) {
-        return this.frames.getPath(relPath, fname);
+    getFramesPath(relPath: string) {
+        return this.frames.getPath(relPath);
     }
     // biome-ignore lint/suspicious/noExplicitAny: <Because of reasons>
     setFrames(relPath: string, frameLike: any) {
@@ -80,10 +80,7 @@ export class FileContext {
             destinationName,
         );
         if (patchPath.ext?.startsWith('frames')) {
-            const framesObj = this.getFrames(
-                destinationRelloc,
-                destinationName,
-            );
+            const framesObj = this.getFrames(destinationRelloc);
             applyPatchRecursively(framesObj, patch, ppath);
             this.setFrames(destinationRelloc, framesObj);
             return;

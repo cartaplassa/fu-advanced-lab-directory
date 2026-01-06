@@ -24,7 +24,10 @@ export const applyPatchRecursively = (
     } catch (e) {
         const validatorResponse = jsonpatch.validate(patch, validOperations);
         if (fpath) {
-            logger.error(`Error while applying patch at ${fpath}`);
+            // FIXME starbound json patch can process test operation w/o value
+            // to check if the prop exists (?)
+            // Setting as warn and ignoring for now
+            logger.warn(`Error while applying patch at ${fpath}`);
             logger.debug(`Error content:\n${e}`);
         }
         logger.debug(`Validator's response:\n${validatorResponse}`);

@@ -13,12 +13,12 @@ export class FrameCollection {
         this.data = frameCollectionLike ?? {};
     }
 
-    get(relPath: string, fname: string) {
-        return getFramesFromObject(this.data, relPath, fname);
+    get(relPath: string) {
+        return getFramesFromObject(this.data, relPath);
     }
 
-    getPath(relPath: string, fname: string) {
-        return getFramesFromObject(this.data, relPath, fname, true);
+    getPath(relPath: string) {
+        return getFramesFromObject(this.data, relPath, true);
     }
 
     set(relPath: string, frameLike: any) {

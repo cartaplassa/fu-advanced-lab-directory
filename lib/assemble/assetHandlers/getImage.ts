@@ -6,7 +6,7 @@ import parseJSON from '~/lib/parseJSON';
 import SimplePath from '../misc/simplePath';
 import type { FileContext } from '../rawResourceCollection/context';
 import { getCropCoordinates } from './getCropCoordinates';
-import { getFramesFromPath } from './getFrame';
+import { getFramesPathFromFS } from './getFrame';
 
 const getImage = (
     ctx: FileContext,
@@ -29,6 +29,9 @@ const getImage = (
     let resolvedImageAbsPath = getImagePath(
         getAbsImagePath(ctx.currentRoot, frelloc, irelloc),
     );
+    let imagePath = new SimplePath(
+        path.relative(ctx.currentRoot, resolvedImageAbsPath || ''),
+    );
 
     // Look in previous roots
     if (!resolvedImageAbsPath) {
@@ -46,7 +49,10 @@ const getImage = (
                 logger.debug(
                     `Found alternative image: ${resolvedImageAbsPath}`,
                 );
-                break;
+                imagePath = new SimplePath(
+                    path.relative(rootPath, resolvedImageAbsPath),
+                );
+                return;
             }
         }
         if (!resolvedImageAbsPath) {
@@ -55,9 +61,7 @@ const getImage = (
         }
     }
 
-    const imagePath = new SimplePath(
-        path.relative(ctx.currentRoot, resolvedImageAbsPath),
-    );
+    // relative to root, w/o slash
     logger.debug(`Image relloc: ${imagePath.path}`);
 
     const outputPath = path.join(
@@ -70,24 +74,16 @@ const getImage = (
 
         // biome-ignore lint/suspicious/noExplicitAny: <Because of reasons>
         let framesObj: any;
-        try {
-            logger.debug(
-                `Name: ${filePath.name}, Image name: ${imagePath.name}`,
-            );
-            framesPath = new SimplePath(
-                getFramesFromPath(
-                    imagePath.path,
-                    filePath.name,
-                    imagePath.name,
-                    ctx.currentRoot,
-                ) || '',
-            );
 
+        logger.debug('Searching .frames in filesystem');
+        logger.debug(`Name: ${filePath.name}, Image name: ${imagePath.name}`);
+        try {
+            framesPath = new SimplePath(
+                getFramesPathFromFS(imagePath.path, ctx.currentRoot) || '',
+            );
             if (framesPath.path === '') {
-                logger.error('.frames not found');
-                return;
+                throw new Error(`Can't find default.frames in filesystem`);
             }
-            logger.debug(`Current root: ${ctx.currentRoot}`);
             logger.debug(
                 `Found .frames, path: ${path.relative(ctx.currentRoot, framesPath.path)}`,
             );
@@ -95,20 +91,23 @@ const getImage = (
                 path.relative(ctx.currentRoot, framesPath.path),
                 parseJSON(framesPath.path),
             );
-            framesObj = parseJSON(framesPath.path);
-        } catch (_e) {
-            logger.debug(
-                `Can't find default.frames for ${imagePath.path}, looking in object`,
-            );
-            framesObj = ctx.getFrames(imagePath.dir, imagePath.name);
-            if (!framesObj) {
-                logger.debug(
-                    `Frames not assembled for ${filePath.name} at ${framesPath.path}`,
-                );
-                return;
+        } catch (e) {
+            if (e instanceof Error) {
+                logger.warn(e.message);
             } else {
-                logger.debug(`Found frames in object`);
+                logger.warn(String(e));
             }
+        }
+
+        logger.debug(`Searching .frames in object`);
+        framesObj = ctx.getFrames(imagePath.dir);
+        if (!framesObj) {
+            logger.debug(
+                `Frames not assembled for ${filePath.name} at ${framesPath.path}`,
+            );
+            return;
+        } else {
+            logger.debug(`Found frames in object`);
         }
 
         const coordinates = getCropCoordinates(key, framesObj);

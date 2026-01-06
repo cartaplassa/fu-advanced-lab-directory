@@ -12,6 +12,7 @@ const customFormat = printf(
 const logger = winston.createLogger({
     transports: [
         new winston.transports.Console({
+            level: 'debug',
             format: combine(
                 customTimestamp(),
                 align(),
