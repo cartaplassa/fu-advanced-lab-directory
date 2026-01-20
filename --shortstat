@@ -1,0 +1,130 @@
+Cartaplassa, Tue Jan 6 16:34:23 2026 +0300 : fix: image getter logic, centrifuge recipe parcers, assembly should work correctly now
+ lib/assemble/assembleObjectPatch.ts                        |   5 [32m++++[m[31m-[m
+ lib/assemble/assetHandlers/getFrame.test.ts                |  59 [32m+++++++++++++++++++++++++++++++++++++[m[31m----------------------[m
+ lib/assemble/assetHandlers/getFrame.ts                     | 119 [32m+++++++++++++++++++++++++++++++++++++++++++++++++[m[31m----------------------------------------------------------------------[m
+ lib/assemble/assetHandlers/getImage.ts                     |  59 [32m+++++++++++++++++++++++++++++[m[31m------------------------------[m
+ lib/assemble/misc/simplePath.ts                            |  11 [32m+++++++++++[m
+ lib/assemble/rawResourceCollection/context.ts              |  15 [32m++++++[m[31m---------[m
+ lib/assemble/rawResourceCollection/frameCollection.test.ts |  25 [32m+++++++++++[m[31m--------------[m
+ lib/assemble/rawResourceCollection/frameCollection.ts      |   8 [32m++++[m[31m----[m
+ lib/assemble/schemas/centrifugeRecipesSchema.ts            |  50 [32m++++++++++++++++++++++++++++++++[m[31m------------------[m
+ lib/logger.ts                                              |   1 [32m+[m
+ 10 files changed, 184 insertions(+), 168 deletions(-)
+
+Cartaplassa, Mon Jan 5 17:10:44 2026 +0300 : feat: filtering stage attempt, small fixes
+ .gitignore                                                          |   1 [32m+[m
+ assemble-resources.ts                                               |  53 [31m----------------------------------[m
+ construct-resources.ts                                              |  51 [32m++++++++++++++++++++++++++++++++[m
+ assembler-config.dist.json => constructor-config.dist.json          |   0
+ constructor-config.json                                             |   7 [32m+++++[m
+ lib/assemble/assembleObjectPatch.ts                                 |  10 [32m+++[m[31m----[m
+ lib/assemble/assetHandlers/getFrame.ts                              |   9 [32m++++[m[31m--[m
+ lib/assemble/assetHandlers/getImage.test.ts                         |  68 [32m+++++++++++++++++++++++++++++++++++++++[m[31m----[m
+ lib/assemble/assetHandlers/getImage.ts                              | 179 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m----------------------------------[m
+ lib/assemble/assetHandlers/getImageTest/ExactPath/File              |   0
+ lib/assemble/assetHandlers/getImageTest/Folder/file                 |   0
+ lib/assemble/assetHandlers/getImageTest/folder/File                 |   0
+ lib/assemble/fileHandlers/centrifugeRecipeHandler.ts                |   0
+ lib/assemble/handleFile.ts                                          | 135 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m----------------------------[m
+ lib/assemble/misc/extensions.test.ts                                |   8 [32m+++[m[31m---[m
+ lib/assemble/rawResourceCollection/context.ts                       |  20 [32m+++++++++[m[31m----[m
+ lib/assemble/schemas/centrifugeRecipesSchema.ts                     |  26 [32m+++++++++++++++++[m
+ lib/assemble/{unfilteredFileSchemas => schemas}/itemFileSchema.ts   |   0
+ lib/assemble/{unfilteredFileSchemas => schemas}/objectFileSchema.ts |   0
+ lib/assemble/{unfilteredFileSchemas => schemas}/patchFileSchema.ts  |   0
+ lib/assemble/{unfilteredFileSchemas => schemas}/recipeFileSchema.ts |   0
+ lib/filter/context/context.ts                                       |  22 [32m++++++++++++++[m
+ lib/filter/filterContext.ts                                         |  15 [32m++++++++++[m
+ lib/filter/filterItem.ts                                            |  39 [32m+++++++++++++++++++++++++[m
+ lib/filter/filterObject.ts                                          |  43 [32m+++++++++++++++++++++++++++[m
+ lib/filter/filterRecipe.ts                                          |  37 [32m++++++++++++++++++++++++[m
+ lib/logger.ts                                                       |   2 [32m+[m[31m-[m
+ lib/parseJSON.ts                                                    |  22 [32m+++++[m[31m---------[m
+ lib/traverseDirectory.ts                                            |  23 [32m++[m[31m-------------[m
+ 29 files changed, 560 insertions(+), 210 deletions(-)
+
+Cartaplassa, Tue Dec 30 11:27:14 2025 +0300 : feat(assembly): remake to account for images
+ assemble-resources.ts                                      |  66 [32m+++++++++[m[31m-----[m
+ lib/assemble/assembleObject.ts                             |   9 [32m+[m[31m-[m
+ lib/assemble/assembleObjectPatch.ts                        |  31 [32m+++++[m[31m--[m
+ lib/assemble/assetHandlers/getCropCoordinates.test.ts      | 203 [32m+++++++++++++++++++++++++++++++++++++++[m[31m-----[m
+ lib/assemble/assetHandlers/getCropCoordinates.ts           | 209 [32m++++++++++++++++++++++++++++++++++++++++[m[31m-----[m
+ lib/assemble/assetHandlers/getFrame.test.ts                |  74 [32m++++++++++++++++[m
+ lib/assemble/assetHandlers/getFrame.ts                     |  82 [32m++++++++++++++++++[m
+ lib/assemble/assetHandlers/getImage.test.ts                |  33 [32m+++++++[m
+ lib/assemble/assetHandlers/getImage.ts                     | 150 [32m++++++++++++++++++++++++++++++++[m
+ lib/assemble/assetHandlers/getImageTest/Folder/File        |   0
+ lib/assemble/handleFile.ts                                 | 142 [32m+++++++++++++++++++++++++++++++[m
+ lib/assemble/misc/deepObjectAccess.test.ts                 |  24 [32m++++++[m
+ lib/assemble/misc/deepObjectAccess.ts                      |  25 [32m++++++[m
+ lib/assemble/misc/extensions.test.ts                       |  23 [32m+++++[m
+ lib/assemble/misc/simplePath.test.ts                       |  43 [32m++++++++++[m
+ lib/assemble/misc/simplePath.ts                            |  45 [32m++++++++++[m
+ lib/assemble/rawResourceCollection/context.ts              | 100 [32m++++++++++++++++++++++[m
+ lib/assemble/rawResourceCollection/frame.test.ts           | 233 [32m++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ lib/assemble/rawResourceCollection/frame.ts                | 187 [32m++++++++++++++++++++++++++++++++++++++++[m
+ lib/assemble/rawResourceCollection/frameCollection.test.ts |  60 [32m+++++++++++++[m
+ lib/assemble/rawResourceCollection/frameCollection.ts      |  27 [32m++++++[m
+ lib/assemble/unfilteredFileSchemas/itemFileSchema.ts       |  11 [32m+++[m
+ lib/assemble/unfilteredFileSchemas/objectFileSchema.ts     |  24 [32m++++++[m
+ lib/assemble/unfilteredFileSchemas/patchFileSchema.ts      |  48 [32m+++++++++++[m
+ lib/assemble/unfilteredFileSchemas/recipeFileSchema.ts     |  15 [32m++++[m
+ lib/logger.ts                                              |   2 [32m+[m[31m-[m
+ lib/parseJSON.ts                                           |  13 [32m++[m[31m-[m
+ lib/traverseDirectory.ts                                   |  27 [32m++++[m[31m--[m
+ package-lock.json                                          | 571 [32m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ package.json                                               |   6 [32m+[m[31m-[m
+ tsconfig.json                                              |   2 [32m+[m[31m-[m
+ 31 files changed, 2396 insertions(+), 89 deletions(-)
+
+Andrew Zarni, Tue Aug 26 13:39:35 2025 +0300 : feat: asset validation test
+ assemble-resources.ts                                 |  72 [32m+++[m[31m--------------[m
+ lib/assemble/assembleObject.ts                        |  18 [32m+++++[m
+ lib/assemble/assembleObjectPatch.test.ts              |  82 [32m+++++++++++++++++++[m
+ lib/assemble/assembleObjectPatch.ts                   |  32 [32m++++++++[m
+ lib/assemble/assetHandlers/getCropCoordinates.test.ts |  54 [32m+++++++++++++[m
+ lib/assemble/assetHandlers/getCropCoordinates.ts      |  40 [32m++++++++++[m
+ lib/{executeCallback.ts => executeCallbacks.ts}       |   5 [32m+[m[31m-[m
+ lib/logger.ts                                         |   5 [31m--[m
+ lib/parseJSON.ts                                      |  35 [32m++++++++[m
+ lib/traverseDirectory.ts                              |   9 [32m+++[m
+ package-lock.json                                     | 554 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m--------[m
+ package.json                                          |   7 [32m+[m[31m-[m
+ vite.config.ts                                        |  13 [32m+[m[31m--[m
+ 13 files changed, 813 insertions(+), 113 deletions(-)
+
+Andrew Zarni, Sat Aug 23 19:14:53 2025 +0300 : update README
+ README.md | 13 [32m++++++++[m[31m-----[m
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+Andrew Zarni, Sat Aug 23 19:02:14 2025 +0300 : feat: crafting stations parsing
+ .gitignore                 |   3 [32m+[m
+ assemble-resources.ts      |  83 [32m++++++++++++++++++++++[m
+ assembler-config.dist.json |   5 [32m++[m
+ lib/executeCallback.ts     |  15 [32m++++[m
+ lib/logger.ts              |  39 [32m+++++++++++[m
+ lib/traverseDirectory.ts   |  20 [32m++++++[m
+ package-lock.json          | 590 [32m++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m[31m--[m
+ package.json               |  10 [32m++[m[31m-[m
+ src/App.tsx                |  87 [32m++++++++++++[m[31m-----------[m
+ 9 files changed, 804 insertions(+), 48 deletions(-)
+
+Andrew, Fri Aug 22 10:42:16 2025 +0000 : Initial commit
+ .editorconfig        |    4 [32m+[m
+ .gitignore           |   24 [32m++[m
+ README.md            |    6 [32m+[m
+ biome.json           |   41 [32m+++[m
+ index.html           |   13 [32m+[m
+ package-lock.json    | 2288 [32m+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++[m
+ package.json         |   32 [32m+++[m
+ public/vite.svg      |    1 [32m+[m
+ src/App.css          |   42 [32m+++[m
+ src/App.tsx          |   48 [32m++++[m
+ src/assets/react.svg |    1 [32m+[m
+ src/index.css        |   31 [32m+++[m
+ src/main.tsx         |   10 [32m+[m
+ src/utils/cn.ts      |   13 [32m+[m
+ src/vite-env.d.ts    |    1 [32m+[m
+ tsconfig.json        |   31 [32m+++[m
+ vite.config.ts       |    8 [32m+[m
+ 17 files changed, 2594 insertions(+)

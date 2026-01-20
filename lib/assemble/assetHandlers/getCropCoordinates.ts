@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: parsing stuff */
 import z from 'zod';
 import logger from '~/lib/logger';
 

@@ -1,43 +1,44 @@
 import type { ObjectFile } from '~/lib/assemble/schemas/objectFileSchema';
+import logger from '../logger';
+import { addToContext } from './addToContext';
 import type { ResContext } from './context/context';
-import { Recipe } from './filterRecipe';
+import { isCentrifuge } from './processors/centrifuge';
+import {
+    isCraftingStation,
+    isCraftingStationWithoutFilter,
+    processCraftingStationWithoutFilter,
+} from './processors/craftingStation';
+import { isExtractor } from './processors/extractor';
+import { isSmelter } from './processors/smelter';
+import {
+    isOutpostStation,
+    isTieredCraftingStation,
+} from './processors/tieredCraftingStation';
+import { isTrader } from './processors/trader';
 
 function filterObject(ctx: ResContext, objectFile: ObjectFile) {
-    if (
-        ['electricfurnace', 'fu_blastfurnace', 'isn_arcsmelter'].includes(
-            objectFile.objectName,
-        )
-    )
-        getElectricFurnaceRecipes(ctx, objectFile);
-}
-
-// NOTE: FrackinUniverse v6.5.2: /objects/power/fu_furnace_common.lua:41
-// Primary output to input ratio is hardcoded to 0.5
-function getElectricFurnaceRecipes(ctx: ResContext, objectFile: ObjectFile) {
-    const baseModifier = objectFile.fu_extraProductionChance as number;
-    Object.entries(
-        objectFile.inputsToOutputs as Record<string, string>,
-    ).forEach(([input, output]) => {
-        const recipe = new Recipe({
-            input: [{ item: input, count: 2 }],
-            output: [{ item: output, count: 1 }],
-            groups: [objectFile.objectName],
-            duration: objectFile.fu_timer as number,
+    if (isSmelter(objectFile.objectName))
+        addToContext(ctx, 'smelter', objectFile);
+    else if (isCentrifuge(objectFile.objectName))
+        addToContext(ctx, 'centrifuge', objectFile);
+    else if (isExtractor(objectFile.objectName))
+        addToContext(ctx, 'extractor', objectFile);
+    else if (isTrader(objectFile)) addToContext(ctx, 'trader', objectFile);
+    else if (isTieredCraftingStation(objectFile)) {
+        if (isOutpostStation(objectFile))
+            // Not supposed to be upgraded, recipes duplicate original stations
+            logger.info(`Outpost station detected: ${objectFile.objectName}`);
+        else addToContext(ctx, 'tieredCraftingStation', objectFile);
+    } else if (isCraftingStation(objectFile)) {
+        if (isCraftingStationWithoutFilter(objectFile))
+            processCraftingStationWithoutFilter(ctx, objectFile);
+        else addToContext(ctx, 'craftingStation', objectFile);
+    } else
+        addToContext(ctx, 'item', {
+            ...objectFile,
+            id: objectFile.objectName,
+            title: objectFile.shortdescription,
         });
-
-        const bonus = (
-            objectFile.bonusOutputs as Record<string, Record<string, number>>
-        )[input];
-        if (bonus) {
-            Object.entries(bonus).forEach(([bonusOutput, chance]) => {
-                recipe.output.push({
-                    item: bonusOutput,
-                    count: 1,
-                    chance: baseModifier * chance,
-                });
-            });
-        }
-
-        ctx.recipes.push(recipe);
-    });
 }
+
+export default filterObject;

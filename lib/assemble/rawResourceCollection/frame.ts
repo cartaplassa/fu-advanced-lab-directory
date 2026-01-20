@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: <Parsing stuff> */
 import z from 'zod';
 import logger from '~/lib/logger';
 export const FRAMES_PARSER_WARN = 'with_warnings';

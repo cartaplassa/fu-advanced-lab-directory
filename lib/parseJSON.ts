@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import JSON5 from 'json5';
-import logger from './logger';
+import logger from './logger.ts';
 
 const MULTILINE_JSON_STRINGS = /"(?:[^"\\]|\\.)*"/gms;
 export const fixNewlines = (file: string) =>

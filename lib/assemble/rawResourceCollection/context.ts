@@ -7,6 +7,7 @@ import type { JSONPatch } from '~/lib/assemble/schemas/patchFileSchema';
 import type { RecipeFile } from '~/lib/assemble/schemas/recipeFileSchema';
 import logger from '~/lib/logger';
 import type { CentrifugeRecipes } from '../schemas/centrifugeRecipesSchema';
+import type { ExtractionRecipes } from '../schemas/extractionRecipesSchema';
 import { FrameCollection } from './frameCollection';
 
 export class FileContext {
@@ -21,6 +22,7 @@ export class FileContext {
     recipes: { [k: string]: RecipeFile };
     frames: FrameCollection;
     centrifugeRecipes: CentrifugeRecipes;
+    extractionRecipes: ExtractionRecipes;
     starboundVersion: string;
     FUVersion: string;
 
@@ -44,6 +46,7 @@ export class FileContext {
             recipes: this.recipes,
             frames: this.frames,
             centrifugeRecipes: this.centrifugeRecipes,
+            extractionRecipes: this.extractionRecipes,
             starboundVersion: this.starboundVersion,
             FUVersion: this.FUVersion,
         };
@@ -62,7 +65,6 @@ export class FileContext {
     getFramesPath(relPath: string) {
         return this.frames.getPath(relPath);
     }
-    // biome-ignore lint/suspicious/noExplicitAny: <Because of reasons>
     setFrames(relPath: string, frameLike: any) {
         this.frames.set(relPath, frameLike);
     }

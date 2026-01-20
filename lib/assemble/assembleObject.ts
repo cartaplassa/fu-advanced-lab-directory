@@ -4,7 +4,6 @@ import parseJSON from '~/lib/parseJSON';
 const assembleObject = (
     fpath: string,
     assetsPath: string,
-    // biome-ignore lint/suspicious/noExplicitAny: <Target is a value of an object>
     target: Record<string, any>,
 ) => {
     const key = path.relative(assetsPath, fpath);

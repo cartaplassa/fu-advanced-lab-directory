@@ -18,6 +18,7 @@ import parseJSON from '~/lib/parseJSON';
 import getImage from './assetHandlers/getImage';
 import type { FileContext } from './rawResourceCollection/context';
 import centrifugeRecipesSchema from './schemas/centrifugeRecipesSchema';
+import extractionRecipesSchema from './schemas/extractionRecipesSchema';
 
 const SEMVER_REGEX =
     /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$/;
@@ -64,12 +65,28 @@ export default function handleFile(ctx: FileContext, fpath: string) {
         return;
     }
 
+    // Extraction recipes
+    if (path.basename(fpath) === 'extractionlab_recipes.config') {
+        logger.info(`Special file detected: ${fpath}`);
+        const result = extractionRecipesSchema.safeParse(parseJSON(fpath));
+        if (!result.success) {
+            logger.error(
+                `Failed to parse extractionlab_recipes.config: ${result.error}`,
+            );
+            return;
+        }
+        ctx.extractionRecipes = result.data;
+        logger.info(`Extraction recipes loaded`);
+        return;
+    }
+
     // Versioning config
     if (path.basename(fpath) === '_FUversioning.config') {
         logger.info(`Special file detected: ${fpath}`);
         const config = parseJSON(fpath);
-        ctx.FUVersion = config.version.match(SEMVER_REGEX)?.[0];
-        logger.info(`Frackin' Universe version written`);
+        const version = config.version.match(SEMVER_REGEX)?.[0];
+        ctx.FUVersion = version;
+        logger.info(`Frackin' Universe version written: ${version}`);
         return;
     }
 
@@ -83,7 +100,6 @@ export default function handleFile(ctx: FileContext, fpath: string) {
         return;
     }
 
-    // biome-ignore lint/suspicious/noExplicitAny: <JSON5 parser return>
     let parsedFile: any;
     try {
         parsedFile = parseJSON(fpath);
@@ -113,6 +129,13 @@ export default function handleFile(ctx: FileContext, fpath: string) {
     // Object
     const parsedObject = objectFileSchema.safeParse(parsedFile);
     if (parsedObject.success) {
+        if (typeof parsedObject?.data?.inventoryIcon === 'string')
+            getImage(
+                ctx,
+                fpath,
+                parsedObject.data.inventoryIcon,
+                parsedObject.data.objectName,
+            );
         logger.info(`${fpath} recognized as object`);
         handleObject(ctx, fpath, relativePath, parsedObject.data);
         return;
@@ -181,7 +204,7 @@ function handleObject(
                     ctx,
                     fpath,
                     stage.itemSpawnParameters.inventoryIcon,
-                    parsedObject.objectName + i,
+                    `${parsedObject.objectName}${i ? i + 1 : ''}`,
                 );
         });
     }

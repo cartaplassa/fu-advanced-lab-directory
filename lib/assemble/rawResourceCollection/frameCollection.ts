@@ -1,4 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: <Parsing stuff> */
 import { deepSet } from '~/lib/assemble/misc/deepObjectAccess';
 import { getFramesFromObject } from '../assetHandlers/getFrame';
 import { FrameFile } from './frame';

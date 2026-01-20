@@ -72,7 +72,6 @@ const getImage = (
     if (key) {
         let framesPath = new SimplePath(imagePath.path);
 
-        // biome-ignore lint/suspicious/noExplicitAny: <Because of reasons>
         let framesObj: any;
 
         logger.debug('Searching .frames in filesystem');

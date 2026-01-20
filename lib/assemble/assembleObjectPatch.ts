@@ -1,5 +1,3 @@
-/** biome-ignore-all lint/suspicious/noExplicitAny: parsing stuff */
-
 import path from 'node:path';
 import jsonpatch from 'fast-json-patch/index';
 import logger from '~/lib/logger';

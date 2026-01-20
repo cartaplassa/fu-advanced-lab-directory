@@ -1,6 +1,5 @@
 import path from 'node:path';
 
-// biome-ignore lint/suspicious/noExplicitAny: <Because of reasons>
 export function deepGet(obj: any, kpath: string | string[]): any {
     const keys = ensurePathArray(kpath);
     if (!obj[keys[0]]) return undefined;
@@ -8,7 +7,6 @@ export function deepGet(obj: any, kpath: string | string[]): any {
     return deepGet(obj[keys[0]], keys.slice(1));
 }
 
-// biome-ignore lint/suspicious/noExplicitAny: <Because of reasons>
 export function deepSet(obj: any, kpath: string | string[], value: any): void {
     const keys = ensurePathArray(kpath);
     if (keys.length === 1) {

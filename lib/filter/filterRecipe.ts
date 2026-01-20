@@ -5,9 +5,7 @@ export type InputIngredient = {
     count: number;
 };
 
-export type OutputIngredient = {
-    item: string;
-    count: number;
+export type OutputIngredient = InputIngredient & {
     chance?: number;
 };
 

@@ -1,7 +1,15 @@
 import z from 'zod';
 
-const zRarity = z.enum(['rarest', 'rare', 'uncommon', 'normal', 'common']);
-const zRecipe = z.record(z.string(), z.tuple([zRarity, z.number()]));
+// /objects/generic/centrifuge_recipes.config
+export const zCentrifugeRarity = z.enum([
+    'rarest',
+    'rare',
+    'uncommon',
+    'normal',
+    'common',
+]);
+export type TCentrifugeRarity = z.infer<typeof zCentrifugeRarity>;
+const zRecipe = z.record(z.string(), z.tuple([zCentrifugeRarity, z.number()]));
 const zItemMap = z.record(z.string(), zRecipe);
 
 // https://github.com/colinhacks/zod/issues/2200

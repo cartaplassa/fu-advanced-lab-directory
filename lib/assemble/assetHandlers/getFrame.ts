@@ -37,7 +37,6 @@ export const getFramesPathFromFS = (
 };
 
 export function getFramesFromObject(
-    // biome-ignore lint/suspicious/noExplicitAny: For testing mostly,
     framesAccumulator: any,
     relImgPath: string, // relative to root, w/o slash
     isDebugMode?: boolean,
